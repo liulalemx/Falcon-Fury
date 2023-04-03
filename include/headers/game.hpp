@@ -15,9 +15,11 @@ class Game{
     private:
         void gameLoop(); // main game loop
         void handleEvents(); // handles game events
+        void prepareScene(); // prepares render
+        void presentScene(); // displays render
 
-        SDL_Window* _window;
-        SDL_Renderer* _renderer;
+        SDL_Window* window;
+        SDL_Renderer* renderer;
 
-        GameState _gameState;
+        GameState gameState;
 };
