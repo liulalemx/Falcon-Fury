@@ -19,9 +19,14 @@ class Game{
         void presentScene(); // displays render
         SDL_Texture *loadTexture(char *filename); // loads an image
         void blit(SDL_Texture *texture, int x, int y); // displays an image
+        void doKeyUp(SDL_KeyboardEvent *event);
+        void doKeyDown(SDL_KeyboardEvent *event);
 
         SDL_Window* window;
         SDL_Renderer* renderer;
+
+        // Movement
+        int up,down,left,right;
 
         GameState gameState;
 };

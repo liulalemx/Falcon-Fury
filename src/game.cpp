@@ -6,7 +6,7 @@
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
-:window(NULL), renderer(NULL)
+:window(NULL), renderer(NULL), up(0), down(0), left(0), right(0)
 {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) cout << "SDL_INIT HAS FAILED! SDL_ERROR: "<< SDL_GetError() << endl;
 
@@ -30,12 +30,34 @@ void Game::run(){
 void Game::gameLoop(){
     Entity player;
     player.x = 500;
-    player.y = 500;
+    player.y = 640;
     player.texture = loadTexture((char*)"res/images/player.png");
 
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
+
+        // Player key input
+        if (up)
+		{
+			player.y -= 4;
+		}
+
+		if (down)
+		{
+			player.y += 4;
+		}
+
+		if (left)
+		{
+			player.x -= 4;
+		}
+
+		if (right)
+		{
+			player.x += 4;
+		}
+
         blit(player.texture, player.x, player.y); // display image
         presentScene(); // displays scene
         SDL_Delay(16); // limits fps to around 62fps
@@ -47,13 +69,22 @@ void Game::gameLoop(){
 
 void Game::handleEvents(){
     SDL_Event evnt;
-    SDL_PollEvent(&evnt);
-
-    switch(evnt.type){
-        case SDL_QUIT:
-            gameState = GameState::EXIT;
-            break;
-    }
+    
+    while(SDL_PollEvent(&evnt)){
+        switch(evnt.type){
+            case SDL_QUIT:
+                gameState = GameState::EXIT;
+                break;
+            case SDL_KEYDOWN:
+                doKeyDown(&evnt.key);
+                break;
+            case SDL_KEYUP:
+                doKeyUp(&evnt.key);
+                break;
+            default:
+                break;
+        }
+    }  
 }
 
 void Game::prepareScene(){
@@ -85,4 +116,56 @@ void Game::blit(SDL_Texture *texture, int x, int y)
 	SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
 
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
+}
+
+void Game::doKeyDown(SDL_KeyboardEvent *event)
+{
+	if (event->repeat == 0)
+	{
+		if (event->keysym.scancode == SDL_SCANCODE_UP)
+		{
+			up = 1;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_DOWN)
+		{
+			down = 1;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_LEFT)
+		{
+			left = 1;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_RIGHT)
+		{
+			right = 1;
+		}
+	}
+}
+
+void Game::doKeyUp(SDL_KeyboardEvent *event)
+{
+	if (event->repeat == 0)
+	{
+		if (event->keysym.scancode == SDL_SCANCODE_UP)
+		{
+			up = 0;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_DOWN)
+		{
+			down = 0;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_LEFT)
+		{
+		    left = 0;
+		}
+
+		if (event->keysym.scancode == SDL_SCANCODE_RIGHT)
+		{
+			right = 0;
+		}
+	}
 }
