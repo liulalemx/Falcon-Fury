@@ -3,10 +3,10 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-   int screenWidth = 1024;
-   int screenHeight = 600;
+   int screenWidth = 1280;
+   int screenHeight = 640;
 
-   Game game("Falcon", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
+   Game game("Falcon Fury", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_SHOWN);
 
    game.run();
 

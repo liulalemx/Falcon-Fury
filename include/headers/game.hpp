@@ -17,6 +17,8 @@ class Game{
         void handleEvents(); // handles game events
         void prepareScene(); // prepares render
         void presentScene(); // displays render
+        SDL_Texture *loadTexture(char *filename); // loads an image
+        void blit(SDL_Texture *texture, int x, int y); // displays an image
 
         SDL_Window* window;
         SDL_Renderer* renderer;
