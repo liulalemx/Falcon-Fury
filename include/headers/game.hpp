@@ -28,5 +28,7 @@ class Game{
         // Movement
         int up,down,left,right;
 
+        int fire;
+
         GameState gameState;
 };

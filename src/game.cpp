@@ -6,7 +6,7 @@
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
-:window(NULL), renderer(NULL), up(0), down(0), left(0), right(0)
+:window(NULL), renderer(NULL), up(0), down(0), left(0), right(0), fire(0)
 {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) cout << "SDL_INIT HAS FAILED! SDL_ERROR: "<< SDL_GetError() << endl;
 
@@ -28,14 +28,22 @@ void Game::run(){
 }
 
 void Game::gameLoop(){
-    Entity player;
+    Entity player,bullet;
+
     player.x = 500;
     player.y = 640;
+    player.dx = 0;
+    player.dy = 0;
     player.texture = loadTexture((char*)"res/images/player.png");
+
+    bullet.texture = loadTexture((char*)"res/images/bullet.png");
 
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
+
+        player.x += player.dx;
+        player.y += player.dy;
 
         // Player key input
         if (up)
@@ -58,7 +66,23 @@ void Game::gameLoop(){
 			player.x += 4;
 		}
 
+        if(fire && !bullet.health){
+            bullet.x = player.x + 8;
+            bullet.y = player.y;
+            bullet.dx = 0;
+            bullet.dy = -16;
+            bullet.health = 1;
+        }
+
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+
+        if(bullet.y < 0) bullet.health = 0;
+
         blit(player.texture, player.x, player.y); // display image
+
+        if(bullet.health > 0) blit(bullet.texture, bullet.x, bullet.y);
+
         presentScene(); // displays scene
         SDL_Delay(16); // limits fps to around 62fps
     }
@@ -122,6 +146,12 @@ void Game::doKeyDown(SDL_KeyboardEvent *event)
 {
 	if (event->repeat == 0)
 	{
+        
+        if (event->keysym.scancode == SDL_SCANCODE_SPACE)
+        {
+	        fire = 1;
+        }
+
 		if (event->keysym.scancode == SDL_SCANCODE_UP)
 		{
 			up = 1;
@@ -148,6 +178,11 @@ void Game::doKeyUp(SDL_KeyboardEvent *event)
 {
 	if (event->repeat == 0)
 	{
+        if (event->keysym.scancode == SDL_SCANCODE_SPACE)
+        {
+	        fire = 0;
+        }
+
 		if (event->keysym.scancode == SDL_SCANCODE_UP)
 		{
 			up = 0;
