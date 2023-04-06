@@ -121,7 +121,6 @@ void Game::gameLoop(){
 			enemy->x = rand() % 1280;
 			enemy->y = 0;
 			enemy->side = SIDE_ALIEN;
-			enemy->health = 1;
 
 			// Load different enemy
 			int enemyType = rand() % 5;
@@ -130,26 +129,32 @@ void Game::gameLoop(){
 				case 0:
 					enemy->texture = enemyTexture1;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 1;
 					break;
 				case 1:
 					enemy->texture = enemyTexture2;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 2;
 					break;
 				case 2:
 					enemy->texture = enemyTexture3;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 3;
 					break;
 				case 3:
 					enemy->texture = enemyTexture4;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 4;
 					break;
 				case 4:
 					enemy->texture = enemyTexture5;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 5;
 					break;
 				case 5:
 					enemy->texture = enemyTexture6;
 					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					enemy->health = 6;
 					break;
 				default:
 					break;
@@ -350,7 +355,7 @@ int Game::bulletHitFighter(Entity *b, Entity fighterHead) // checks if a bullet 
 		if (e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h))
 		{
 			b->health = 0;
-			e->health = 0;
+			e->health--;
 
 			return 1;
 		}
