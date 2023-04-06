@@ -1,8 +1,10 @@
 #include "game.hpp"
 #include "structs.hpp"
+#include "defs.hpp"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
+#include <cstring>
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
@@ -28,15 +30,20 @@ void Game::run(){
 }
 
 void Game::gameLoop(){
-    Entity player,bullet;
+    Entity player;
+	Entity bulletHead;
+    Entity *bulletTail = new Entity();
+
+	bulletTail = &bulletHead;
 
     player.x = 500;
     player.y = 640;
     player.dx = 0;
     player.dy = 0;
     player.texture = loadTexture((char*)"res/images/player.png");
+	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
-    bullet.texture = loadTexture((char*)"res/images/bullet.png");
+    SDL_Texture *bulletTexture = loadTexture((char*)"res/images/bullet.png");
 
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
@@ -46,6 +53,8 @@ void Game::gameLoop(){
         player.y += player.dy;
 
         // Player key input
+		if(player.reload > 0) player.reload--;
+
         if (up)
 		{
 			player.y -= 4;
@@ -66,22 +75,54 @@ void Game::gameLoop(){
 			player.x += 4;
 		}
 
-        if(fire && !bullet.health){
-            bullet.x = player.x + 8;
-            bullet.y = player.y;
-            bullet.dx = 0;
-            bullet.dy = -16;
-            bullet.health = 1;
+		// allow fire bullet every 8 frames
+        if(fire && player.reload == 0){
+			player.reload = 8;
+
+			// Create bullet
+			Entity *bullet = new Entity();
+    		memset(bullet, 0, sizeof(Entity));
+
+			bulletTail->next = bullet;
+			bulletTail = bullet;
+
+            bullet->x = player.x + 8;
+            bullet->y = player.y;
+            bullet->dx = 0;
+            bullet->dy = -PLAYER_BULLET_SPEED;
+            bullet->health = 1;
+			bullet->texture = bulletTexture;
+			SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h); 
         }
 
-        bullet.x += bullet.dx;
-        bullet.y += bullet.dy;
+		// handle physics and render for each bullet
+		
+			Entity *b = new Entity();
+			Entity *prev = new Entity();
+			prev = &bulletHead;
 
-        if(bullet.y < 0) bullet.health = 0;
+			for (b = bulletHead.next ; b != NULL ; b = b->next){
+        		b->x += b->dx;
+        		b->y += b->dy;
 
+				blit(b->texture, b->x, b->y);
+			
+				if(b->y < 0){
+					if (b == bulletTail)
+					{
+						bulletTail = prev;
+					}
+					prev->next = b->next;
+					delete b;
+					b = prev;
+				}
+
+				prev = b;
+
+			}
+			
         blit(player.texture, player.x, player.y); // display image
 
-        if(bullet.health > 0) blit(bullet.texture, bullet.x, bullet.y);
 
         presentScene(); // displays scene
         SDL_Delay(16); // limits fps to around 62fps

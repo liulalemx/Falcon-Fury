@@ -13,5 +13,5 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-// mimgw32-make -f .\MakeFile
+// mingw32-make -f .\MakeFile
 // .\Main.exe
