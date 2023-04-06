@@ -11,6 +11,7 @@ struct Entity {
     int h= 0;
     int reload = 0;
     int health = 0;
+    int side = 0;
 	SDL_Texture *texture;
     Entity *next = NULL;
 

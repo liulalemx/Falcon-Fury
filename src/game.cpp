@@ -46,6 +46,7 @@ void Game::gameLoop(){
     player.y = 640;
     player.dx = 0;
     player.dy = 0;
+	player.side = SIDE_PLAYER;
     player.texture = loadTexture((char*)"res/images/player.png");
 	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
@@ -104,6 +105,7 @@ void Game::gameLoop(){
             bullet->dx = 0;
             bullet->dy = -PLAYER_BULLET_SPEED;
             bullet->health = 1;
+			bullet->side = SIDE_PLAYER;
 			bullet->texture = bulletTexture;
 			SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h); 
         }
@@ -118,6 +120,8 @@ void Game::gameLoop(){
 
 			enemy->x = rand() % 1280;
 			enemy->y = 0;
+			enemy->side = SIDE_ALIEN;
+			enemy->health = 1;
 
 			// Load different enemy
 			int enemyType = rand() % 5;
@@ -170,7 +174,7 @@ void Game::gameLoop(){
 
 			blit(b->texture, b->x, b->y);
 			
-			if(b->y < 0){
+			if(b->y < 0 || bulletHitFighter(b, fighterHead)){
 				if (b == bulletTail)
 				{
 					bulletTail = prev;
@@ -195,7 +199,7 @@ void Game::gameLoop(){
 
 			blit(e->texture, e->x, e->y);
 			
-			if( e->y > 720){
+			if( e->y > 720 || e->health == 0){
 				if (e == fighterTail)
 				{
 					fighterTail = prevv;
@@ -331,4 +335,26 @@ void Game::doKeyUp(SDL_KeyboardEvent *event)
 			right = 0;
 		}
 	}
+}
+
+int Game::collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
+	return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
+}
+
+int Game::bulletHitFighter(Entity *b, Entity fighterHead) // checks if a bullet has hit an enemy figher using collision function
+{
+	Entity *e;
+
+	for (e = fighterHead.next ; e != NULL ; e = e->next)
+	{
+		if (e->side != b->side && collision(b->x, b->y, b->w, b->h, e->x, e->y, e->w, e->h))
+		{
+			b->health = 0;
+			e->health = 0;
+
+			return 1;
+		}
+	}
+
+	return 0;
 }
