@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <iostream>
-#include <cstring>
+#include <cstdlib>
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
@@ -31,10 +31,16 @@ void Game::run(){
 
 void Game::gameLoop(){
     Entity player;
+
 	Entity bulletHead;
     Entity *bulletTail = new Entity();
-
 	bulletTail = &bulletHead;
+
+	Entity fighterHead;
+    Entity *fighterTail = new Entity();
+	fighterTail = &fighterHead;
+
+	int enemySpawnTimer = 0;
 
     player.x = 500;
     player.y = 640;
@@ -43,7 +49,14 @@ void Game::gameLoop(){
     player.texture = loadTexture((char*)"res/images/player.png");
 	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
+	// Cache enemy and bullet textures
     SDL_Texture *bulletTexture = loadTexture((char*)"res/images/bullet.png");
+    SDL_Texture *enemyTexture1 = loadTexture((char*)"res/images/enemyShip.png");
+    SDL_Texture *enemyTexture2 = loadTexture((char*)"res/images/enemyShip_lvl2.png");
+    SDL_Texture *enemyTexture3 = loadTexture((char*)"res/images/enemyShip_lvl3.png");
+    SDL_Texture *enemyTexture4 = loadTexture((char*)"res/images/enemyShip_lvl4.png");
+    SDL_Texture *enemyTexture5 = loadTexture((char*)"res/images/enemyShip_lvl5.png");
+    SDL_Texture *enemyTexture6 = loadTexture((char*)"res/images/enemyShip_lvl6.png");
 
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
@@ -95,31 +108,105 @@ void Game::gameLoop(){
 			SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h); 
         }
 
-		// handle physics and render for each bullet
-		
-			Entity *b = new Entity();
-			Entity *prev = new Entity();
-			prev = &bulletHead;
+		// generate enemy ships every 0.5 - 1.5 seconds
+		if (--enemySpawnTimer <= 0)
+		{
+			Entity *enemy = new Entity();
+			memset(enemy, 0, sizeof(Entity));
+			fighterTail->next = enemy;
+			fighterTail = enemy;
 
-			for (b = bulletHead.next ; b != NULL ; b = b->next){
-        		b->x += b->dx;
-        		b->y += b->dy;
+			enemy->x = rand() % 1280;
+			enemy->y = 0;
 
-				blit(b->texture, b->x, b->y);
-			
-				if(b->y < 0){
-					if (b == bulletTail)
-					{
-						bulletTail = prev;
-					}
-					prev->next = b->next;
-					delete b;
-					b = prev;
-				}
-
-				prev = b;
-
+			// Load different enemy
+			int enemyType = rand() % 5;
+			switch (enemyType)
+			{
+				case 0:
+					enemy->texture = enemyTexture1;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				case 1:
+					enemy->texture = enemyTexture2;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				case 2:
+					enemy->texture = enemyTexture3;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				case 3:
+					enemy->texture = enemyTexture4;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				case 4:
+					enemy->texture = enemyTexture5;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				case 5:
+					enemy->texture = enemyTexture6;
+					SDL_QueryTexture(enemy->texture, NULL, NULL, &enemy->w, &enemy->h);
+					break;
+				default:
+					break;
 			}
+
+
+			
+
+			enemy->dy = (2 + (rand() % 4));
+
+			enemySpawnTimer = 30 + (rand() % 60);
+		}
+
+		// handle physics and render for each bullet
+		Entity *b = new Entity();
+		Entity *prev = new Entity();
+		prev = &bulletHead;
+
+		for (b = bulletHead.next ; b != NULL ; b = b->next){
+        	b->x += b->dx;
+        	b->y += b->dy;
+
+			blit(b->texture, b->x, b->y);
+			
+			if(b->y < 0){
+				if (b == bulletTail)
+				{
+					bulletTail = prev;
+				}
+				prev->next = b->next;
+				delete b;
+				b = prev;
+			}
+
+			prev = b;
+
+		}
+
+		// handle physics and render for each enemy
+		Entity *e = new Entity();
+		Entity *prevv = new Entity();
+		prevv = &fighterHead;
+
+		for (e = fighterHead.next ; e != NULL ; e = e->next){
+        	e->x += e->dx;
+        	e->y += e->dy;
+
+			blit(e->texture, e->x, e->y);
+			
+			if( e->y > 720){
+				if (e == fighterTail)
+				{
+					fighterTail = prevv;
+				}
+				prevv->next = e->next;
+				delete e;
+				e = prevv;
+			}
+
+			prevv = e;
+		}
 			
         blit(player.texture, player.x, player.y); // display image
 
