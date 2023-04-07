@@ -15,6 +15,9 @@ Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
 
     window = SDL_CreateWindow(title, x, y, w, h, flags);
 
+	SDL_Surface *icon = IMG_Load("res/images/player_lvl2.png");
+	SDL_SetWindowIcon(window, icon);
+
     if(window == NULL) cout << "Window failed to open. Error: " << SDL_GetError() << endl;
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
