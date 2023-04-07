@@ -41,6 +41,7 @@ void Game::gameLoop(){
 	fighterTail = &fighterHead;
 
 	int enemySpawnTimer = 0;
+	int backgroundY = 0;
 
     player.x = 500;
     player.y = 640;
@@ -50,8 +51,11 @@ void Game::gameLoop(){
     player.texture = loadTexture((char*)"res/images/player.png");
 	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
-	// Cache enemy and bullet textures
-    SDL_Texture *bulletTexture = loadTexture((char*)"res/images/bullet.png");
+	// Cache textures
+    SDL_Texture *backgroundTextureTop = loadTexture((char*)"res/images/mapTop.png");
+    SDL_Texture *backgroundTextureMid = loadTexture((char*)"res/images/mapMid.png");
+    SDL_Texture *backgroundTextureBot = loadTexture((char*)"res/images/mapBot.png");
+    SDL_Texture *bulletTexture = loadTexture((char*)"res/images/bullet1.png");
     SDL_Texture *enemyTexture1 = loadTexture((char*)"res/images/enemyShip.png");
     SDL_Texture *enemyTexture2 = loadTexture((char*)"res/images/enemyShip_lvl2.png");
     SDL_Texture *enemyTexture3 = loadTexture((char*)"res/images/enemyShip_lvl3.png");
@@ -110,6 +114,34 @@ void Game::gameLoop(){
 			SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h); 
         }
 
+		// reset background
+		if (++backgroundY > 2160)
+		{
+			backgroundY = 0;
+		}
+
+		// draw background
+		SDL_Rect dest, src;	
+
+		int y = backgroundY;
+
+		if(y > 1440) dest.y = y-2160;
+		dest.x = 0;
+		if (y < 1440) dest.y = y;
+		SDL_QueryTexture(backgroundTextureTop, NULL, NULL, &dest.w, &dest.h);
+		SDL_RenderCopy(renderer, backgroundTextureTop, NULL, &dest);
+
+		if(y > 1440) dest.y = y-2880;
+		dest.x = 0;
+		if (y < 1440) dest.y = y -720;
+		SDL_QueryTexture(backgroundTextureBot, NULL, NULL, &dest.w, &dest.h);
+		SDL_RenderCopy(renderer, backgroundTextureBot, NULL, &dest);
+
+		dest.y = y -1440;
+		dest.x = 0;
+		SDL_QueryTexture(backgroundTextureMid, NULL, NULL, &dest.w, &dest.h);
+		SDL_RenderCopy(renderer, backgroundTextureMid, NULL, &dest);
+	
 		// generate enemy ships every 0.5 - 1.5 seconds
 		if (--enemySpawnTimer <= 0)
 		{
@@ -159,9 +191,6 @@ void Game::gameLoop(){
 				default:
 					break;
 			}
-
-
-			
 
 			enemy->dy = (2 + (rand() % 4));
 
@@ -249,7 +278,7 @@ void Game::handleEvents(){
 }
 
 void Game::prepareScene(){
-    SDL_SetRenderDrawColor(renderer, 96, 128, 255, 255);
+    // SDL_SetRenderDrawColor(renderer, 96, 128, 255, 255);
 	SDL_RenderClear(renderer);
 }
 

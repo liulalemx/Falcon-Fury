@@ -16,6 +16,6 @@ struct Entity {
     Entity *next = NULL;
 
     ~Entity(){
-        std::cout << "Entity freed" <<std::endl;
+        // std::cout << "Entity freed" <<std::endl;
     }
 };
