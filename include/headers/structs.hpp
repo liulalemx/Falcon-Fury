@@ -14,8 +14,4 @@ struct Entity {
     int side = 0;
 	SDL_Texture *texture;
     Entity *next = NULL;
-
-    ~Entity(){
-        // std::cout << "Entity freed" <<std::endl;
-    }
 };

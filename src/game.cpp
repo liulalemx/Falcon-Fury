@@ -5,6 +5,7 @@
 #include <SDL_image.h>
 #include <iostream>
 #include <cstdlib>
+#include "sound.hpp"
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
@@ -63,6 +64,19 @@ void Game::gameLoop(){
     SDL_Texture *enemyTexture5 = loadTexture((char*)"res/images/enemyShip_lvl5.png");
     SDL_Texture *enemyTexture6 = loadTexture((char*)"res/images/enemyShip_lvl6.png");
 
+	// init sound
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+	{
+		cout << "couldn't initialize SDL Mixer" << endl;
+		exit(1);
+	}
+
+	Mix_AllocateChannels(MAX_SND_CHANNELS);
+
+	Sound sound;
+	sound.initSounds();
+	sound.playMusic(-1);
+
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
@@ -96,6 +110,7 @@ void Game::gameLoop(){
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
 			player.reload = 8;
+			sound.playSound(sound.SND_PLAYER_FIRE, CH_PLAYER);
 
 			// Create bullet
 			Entity *bullet = new Entity();
@@ -207,8 +222,8 @@ void Game::gameLoop(){
         	b->y += b->dy;
 
 			blit(b->texture, b->x, b->y);
-			
-			if(b->y < 0 || bulletHitFighter(b, fighterHead)){
+		
+			if(b->y < 0 || bulletHitFighter(b, fighterHead, sound)){
 				if (b == bulletTail)
 				{
 					bulletTail = prev;
@@ -232,6 +247,8 @@ void Game::gameLoop(){
         	e->y += e->dy;
 
 			blit(e->texture, e->x, e->y);
+
+			if(e->health == 0) sound.playSound(sound.SND_ALIEN_DIE,CH_ALIEN_DIE);
 			
 			if( e->y > 720 || e->health == 0){
 				if (e == fighterTail)
@@ -375,7 +392,7 @@ int Game::collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int 
 	return (max(x1, x2) < min(x1 + w1, x2 + w2)) && (max(y1, y2) < min(y1 + h1, y2 + h2));
 }
 
-int Game::bulletHitFighter(Entity *b, Entity fighterHead) // checks if a bullet has hit an enemy figher using collision function
+int Game::bulletHitFighter(Entity *b, Entity fighterHead, Sound sound) // checks if a bullet has hit an enemy figher using collision function
 {
 	Entity *e;
 
@@ -385,6 +402,7 @@ int Game::bulletHitFighter(Entity *b, Entity fighterHead) // checks if a bullet 
 		{
 			b->health = 0;
 			e->health--;
+			sound.playSound(sound.SND_ALIEN_HIT,CH_ALIEN_HIT);
 
 			return 1;
 		}

@@ -1,3 +1,5 @@
+#pragma once
+
 #define PLAYER_SPEED          8
 #define PLAYER_BULLET_SPEED   16
 
@@ -5,3 +7,14 @@
 
 #define SIDE_PLAYER 0
 #define SIDE_ALIEN  1
+
+#define MAX_SND_CHANNELS 8
+
+enum
+{
+	CH_ANY = -1,
+	CH_PLAYER,
+	CH_ALIEN_DIE,
+    CH_ALIEN_HIT
+};
+

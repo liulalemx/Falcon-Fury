@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <structs.hpp>
+#include "sound.hpp"
 
 enum class GameState {PLAY, EXIT};
 
@@ -23,7 +24,7 @@ class Game{
         void doKeyUp(SDL_KeyboardEvent *event);
         void doKeyDown(SDL_KeyboardEvent *event);
         int collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2); // checks if two rectangles overlap
-        int bulletHitFighter(Entity *b, Entity fighterHead); // checks if a bullet has hit an enemy figher using collision function
+        int bulletHitFighter(Entity *b, Entity fighterHead, Sound sound); // checks if a bullet has hit an enemy figher using collision function
 
         SDL_Window* window;
         SDL_Renderer* renderer;
