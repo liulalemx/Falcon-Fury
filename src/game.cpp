@@ -93,13 +93,22 @@ void Game::gameLoop(){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
 
-        player.x += player.dx;
+        if(gameState == GameState::GAMEOVER)
+		{
+			player.x = 0;
+			player.y = 0;
+			player.dx = 0;
+			player.dy = 0;
+			player.texture = NULL;
+		}
+
+		player.x += player.dx;
         player.y += player.dy;
 
         // Player key input
 		if(player.reload > 0) player.reload--;
 
-        if (up)
+       	if (up)
 		{
 			player.y -= PLAYER_SPEED;
 		}
@@ -118,6 +127,8 @@ void Game::gameLoop(){
 		{
 			player.x += PLAYER_SPEED;
 		}
+		
+		playerHitEnemy(player, fighterHead ,sound); // check for player collission
 
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
@@ -177,7 +188,7 @@ void Game::gameLoop(){
 			fighterTail->next = enemy;
 			fighterTail = enemy;
 
-			enemy->x = rand() % 1280;
+			enemy->x = rand() % 1270;
 			enemy->y = 0;
 			enemy->side = SIDE_ALIEN;
 
@@ -221,7 +232,17 @@ void Game::gameLoop(){
 
 			enemy->dy = (2 + (rand() % 4));
 
-			enemySpawnTimer = 30 + (rand() % 60);
+			if(score > 200){
+				enemySpawnTimer = 20 + (rand() % 40);
+			} else if (score > 300){
+				enemySpawnTimer = 10 + (rand() % 30);
+			}else if(score > 700){
+				enemySpawnTimer = 10;
+			}else if(score > 1000){
+				enemySpawnTimer = 5;
+			}else{
+				enemySpawnTimer = 30 + (rand() % 60);
+			}	
 		}
 
 		// handle physics and render for each bullet
@@ -263,6 +284,10 @@ void Game::gameLoop(){
 			if(e->health == 0){
 				score += 10;
 				sound.playSound(sound.SND_ALIEN_DIE,CH_ALIEN_DIE);
+			} 
+
+			if(e->y > 720){
+				if(score != 0) score -= 10;
 			} 
 			
 			if( e->y > 720 || e->health == 0){
@@ -434,23 +459,62 @@ int Game::bulletHitFighter(Entity *b, Entity fighterHead, Sound sound) // checks
 	return 0;
 }
 
+void Game::playerHitEnemy(Entity player, Entity fighterHead, Sound sound) // checks if the player has collided with an enemy
+{
+	Entity *e;
+
+	for (e = fighterHead.next ; e != NULL ; e = e->next)
+	{
+		if (e->side != player.side && collision(player.x, player.y, player.w, player.h, e->x, e->y, e->w, e->h))
+		{
+			player.health = 0;
+			e->health = 0;
+			sound.playSound(sound.SND_PLAYER_DIE,CH_PLAYER);
+			gameState = GameState::GAMEOVER;
+		}
+	}
+
+}
+
 void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font){
-	std::string desc = "Score: ";
-	std::string displayText = desc + textureText;
+	if(gameState == GameState::PLAY)
+	{
+		std::string desc = "Score: ";
+		std::string displayText = desc + textureText;
 
-	SDL_Surface* textSurface = TTF_RenderText_Solid( font, displayText.data(), textColor );
-	if(textSurface == NULL) cout << "Unable to load text surface" << endl;
-	SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-	if(textSurface == NULL) cout << "Unable load texture" << endl;
+		SDL_Surface* textSurface = TTF_RenderText_Solid( font, displayText.data(), textColor );
+		if(textSurface == NULL) cout << "Unable to load text surface" << endl;
+		SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+		if(textSurface == NULL) cout << "Unable load texture" << endl;
 
-	SDL_Rect scoreRect; //create a rect
-	scoreRect.x = 100;  //controls the rect's x coordinate 
-	scoreRect.y = 100; // controls the rect's y coordinte
-	scoreRect.w = 100; // controls the width of the rect
-	scoreRect.h = 100; // controls the height of the rect
+		SDL_Rect scoreRect; //create a rect
+		scoreRect.x = 100;  //controls the rect's x coordinate 
+		scoreRect.y = 100; // controls the rect's y coordinte
+		scoreRect.w = 100; // controls the width of the rect
+		scoreRect.h = 100; // controls the height of the rect
 
-	SDL_QueryTexture(messageTexture, NULL, NULL, &scoreRect.w, &scoreRect.h);
-	SDL_RenderCopy(renderer, messageTexture, NULL, &scoreRect);
-	SDL_FreeSurface(textSurface);
-	SDL_DestroyTexture(messageTexture);
+		SDL_QueryTexture(messageTexture, NULL, NULL, &scoreRect.w, &scoreRect.h);
+		SDL_RenderCopy(renderer, messageTexture, NULL, &scoreRect);
+
+		SDL_FreeSurface(textSurface);
+		SDL_DestroyTexture(messageTexture);
+	}
+
+	// Game Over
+	if(gameState == GameState::GAMEOVER){
+		SDL_Surface* textSurface2 = TTF_RenderText_Solid( font, (char*)"Game Over", textColor );
+		SDL_Texture* messageTexture2 = SDL_CreateTextureFromSurface(renderer, textSurface2);
+
+		SDL_Rect goRect; //create a rect
+		goRect.x = 1280/2 - 50;
+		goRect.y = 720/2 -50;
+		goRect.w = 100; 
+		goRect.h = 100; 
+		
+		SDL_QueryTexture(messageTexture2, NULL, NULL, &goRect.w, &goRect.h);
+		SDL_RenderCopy(renderer, messageTexture2, NULL, &goRect);
+
+		SDL_FreeSurface(textSurface2);
+		SDL_DestroyTexture(messageTexture2);
+	}
 }
