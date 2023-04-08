@@ -1,17 +1,21 @@
 #include "game.hpp"
 #include "structs.hpp"
 #include "defs.hpp"
+#include "sound.hpp"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #include <iostream>
 #include <cstdlib>
-#include "sound.hpp"
+#include <string>
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
 :window(NULL), renderer(NULL), up(0), down(0), left(0), right(0), fire(0)
 {
     if(SDL_Init(SDL_INIT_EVERYTHING) != 0) cout << "SDL_INIT HAS FAILED! SDL_ERROR: "<< SDL_GetError() << endl;
+
+	TTF_Init();
 
     window = SDL_CreateWindow(title, x, y, w, h, flags);
 
@@ -46,6 +50,7 @@ void Game::gameLoop(){
 
 	int enemySpawnTimer = 0;
 	int backgroundY = 0;
+	int score = 0;
 
     player.x = 500;
     player.y = 640;
@@ -79,6 +84,10 @@ void Game::gameLoop(){
 	Sound sound;
 	sound.initSounds();
 	sound.playMusic(-1);
+
+	// init text
+	TTF_Font* mainFont = TTF_OpenFont("fonts/mainFont.ttf", 32);
+	SDL_Color textColor = {10, 10, 10};
 
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
@@ -251,7 +260,10 @@ void Game::gameLoop(){
 
 			blit(e->texture, e->x, e->y);
 
-			if(e->health == 0) sound.playSound(sound.SND_ALIEN_DIE,CH_ALIEN_DIE);
+			if(e->health == 0){
+				score += 10;
+				sound.playSound(sound.SND_ALIEN_DIE,CH_ALIEN_DIE);
+			} 
 			
 			if( e->y > 720 || e->health == 0){
 				if (e == fighterTail)
@@ -268,12 +280,20 @@ void Game::gameLoop(){
 			
         blit(player.texture, player.x, player.y); // display image
 
-
+		// draws HUD
+		std::string s = std::to_string(score);
+		drawHud(s,textColor,mainFont);
+		
         presentScene(); // displays scene
         SDL_Delay(16); // limits fps to around 62fps
     }
 
+	// Close up
+	SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+	TTF_CloseFont(mainFont);
+	TTF_Quit();
+	IMG_Quit();
     SDL_Quit();
 }
 
@@ -412,4 +432,25 @@ int Game::bulletHitFighter(Entity *b, Entity fighterHead, Sound sound) // checks
 	}
 
 	return 0;
+}
+
+void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font){
+	std::string desc = "Score: ";
+	std::string displayText = desc + textureText;
+
+	SDL_Surface* textSurface = TTF_RenderText_Solid( font, displayText.data(), textColor );
+	if(textSurface == NULL) cout << "Unable to load text surface" << endl;
+	SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+	if(textSurface == NULL) cout << "Unable load texture" << endl;
+
+	SDL_Rect scoreRect; //create a rect
+	scoreRect.x = 100;  //controls the rect's x coordinate 
+	scoreRect.y = 100; // controls the rect's y coordinte
+	scoreRect.w = 100; // controls the width of the rect
+	scoreRect.h = 100; // controls the height of the rect
+
+	SDL_QueryTexture(messageTexture, NULL, NULL, &scoreRect.w, &scoreRect.h);
+	SDL_RenderCopy(renderer, messageTexture, NULL, &scoreRect);
+	SDL_FreeSurface(textSurface);
+	SDL_DestroyTexture(messageTexture);
 }

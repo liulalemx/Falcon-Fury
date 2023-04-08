@@ -28,9 +28,11 @@ void Sound::loadSounds(){
 void Sound::playMusic(int loop)
 {
 	Mix_PlayMusic(GAME_MUSIC, (loop) ? -1 : 0);
+	Mix_VolumeMusic(25);
 }
 
 void Sound::playSound(Mix_Chunk *sound, int channel)
 {
 	Mix_PlayChannel(channel, sound, 0);
+	Mix_VolumeChunk(sound, 25);
 }

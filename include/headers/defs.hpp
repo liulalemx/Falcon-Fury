@@ -10,6 +10,8 @@
 
 #define MAX_SND_CHANNELS 8
 
+#define MAX_LINE_LENGTH 1024
+
 enum
 {
 	CH_ANY = -1,
