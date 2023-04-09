@@ -10,7 +10,7 @@ Falcon Fury is a 2D Shoot 'Em Up game made using the C++ programming language an
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine. You can download a windows version of the game from [here]("").
+These instructions will get you a copy of the project up and running on your local machine. You can download a windows version of the game from [here](https://github.com/liulalemx/Falcon-Fury/releases/download/v1.0.0/Falcon.Fury.v1.0.0.zip).
 
 ### Prerequisites
 
