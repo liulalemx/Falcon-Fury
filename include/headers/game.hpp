@@ -8,7 +8,7 @@
 #include <SDL_ttf.h>
 #include <string>
 
-enum class GameState {PLAY, EXIT, GAMEOVER, PLAYAGAIN};
+enum class GameState {PLAY, EXIT, GAMEOVER, PLAYAGAIN, START};
 
 class Game{
     public:
@@ -42,5 +42,5 @@ class Game{
         int gameHighscore = 0;
         bool isLifeGenerated = false;
 
-        GameState gameState = GameState::PLAY;
+        GameState gameState =  GameState::START;
 };

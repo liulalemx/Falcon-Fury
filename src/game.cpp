@@ -50,6 +50,7 @@ void Game::gameLoop(){
 	fighterTail = &fighterHead;
 
 	Entity playerLife;
+	Entity titleImage;
 
 	int enemySpawnTimer = 0;
 	int lifeSpawnTimer = 0;
@@ -72,6 +73,7 @@ void Game::gameLoop(){
 	SDL_Texture *playerTexture = loadTexture((char*)"res/images/player.png");
 	SDL_Texture *playerTexture1 = loadTexture((char*)"res/images/player_lvl2.png");
 	SDL_Texture *playerTexture2 = loadTexture((char*)"res/images/player_lvl3.png");
+	SDL_Texture *titleScreenTexture = loadTexture((char*)"res/images/titleScreen.png");
 
 	// init highscore
 	HighScoreFile hf;
@@ -103,12 +105,21 @@ void Game::gameLoop(){
 	TTF_Font* mainFont = TTF_OpenFont("fonts/mainFont.ttf", 32);
 	SDL_Color textColor = {10, 10, 10};
 
+	// init title screen
+	if(gameState == GameState::START){
+		titleImage.x = 1270/2 - 954/2;
+		titleImage.y = 720/2 - 87/2;
+		titleImage.texture = titleScreenTexture;
+		SDL_QueryTexture(titleImage.texture, NULL, NULL, &titleImage.w, &titleImage.h);
+	}
+
+	// main loop
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
 		
-        // Handles game over and play again states
-		if(gameState == GameState::GAMEOVER)
+        // Handles game start, game over and play again states
+		if(gameState == GameState::GAMEOVER || gameState == GameState::START)
 		{
 			player.dx = 0;
 			player.dy = 0;
@@ -128,7 +139,7 @@ void Game::gameLoop(){
 		}
 
 		// Update player texture to sprite
-		if(gameState != GameState::GAMEOVER)
+		if(gameState != GameState::GAMEOVER && gameState != GameState::START)
 		{	
 			if(player.texture != playerTexture && playerLifeScore == 1){
 				player.texture = playerTexture;
@@ -168,8 +179,8 @@ void Game::gameLoop(){
 			player.x += PLAYER_SPEED;
 		}
 		
-		if (gameState != GameState::GAMEOVER) playerHitEnemy(player, fighterHead ,sound); // check for player collission
-		if (gameState != GameState::GAMEOVER) playerHitLife(player, playerLife ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER || gameState != GameState::START) playerHitEnemy(player, fighterHead ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER || gameState != GameState::START) playerHitLife(player, playerLife ,sound); // check for player collission
 
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
@@ -227,7 +238,7 @@ void Game::gameLoop(){
 		SDL_RenderCopy(renderer, backgroundTextureMid, NULL, &dest);
 
 		// generates Life point every 10 - 30 seconds
-		if(--lifeSpawnTimer <= 0 && !isLifeGenerated && gameState != GameState::GAMEOVER)
+		if(--lifeSpawnTimer <= 0 && !isLifeGenerated && gameState != GameState::GAMEOVER && gameState != GameState::START)
 		{
 			playerLife.x = rand() % 1270;
 			playerLife.y = rand() % 710;
@@ -363,6 +374,9 @@ void Game::gameLoop(){
 		playerLife.texture = playerLifeTexture;
 		SDL_QueryTexture(playerLife.texture, NULL, NULL, &playerLife.w, &playerLife.h); 
 		if(isLifeGenerated) blit(playerLife.texture, playerLife.x, playerLife.y);
+
+		//render title screen
+		if(gameState == GameState::START) blit(titleImage.texture,titleImage.x,titleImage.y);
 
 		// display player over everything	
         blit(player.texture, player.x, player.y); 
@@ -596,6 +610,25 @@ void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font)
 
 		SDL_FreeSurface(textSurface2);
 		SDL_DestroyTexture(messageTexture2);
+	}
+
+	// Game Start
+	if(gameState == GameState::START){
+		// Play Again Message
+		SDL_Surface* textSurface3 = TTF_RenderText_Solid( font, (char*)"Press Enter to Play", textColor );
+		SDL_Texture* messageTexture3 = SDL_CreateTextureFromSurface(renderer, textSurface3);
+
+		SDL_Rect paRect; //create a rect
+		paRect.x = 1280/2 - 100;
+		paRect.y = 600 -50;
+		paRect.w = 100; 
+		paRect.h = 100; 
+		
+		SDL_QueryTexture(messageTexture3, NULL, NULL, &paRect.w, &paRect.h);
+		SDL_RenderCopy(renderer, messageTexture3, NULL, &paRect);
+
+		SDL_FreeSurface(textSurface3);
+		SDL_DestroyTexture(messageTexture3);
 	}
 
 	// Game Over
