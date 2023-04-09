@@ -6,7 +6,7 @@
   <strong>Protect your home from the enemy fleet ✈️</strong>
 </p>
 
-Falcon Fury is a 2d shoot em' up game made using the C++ programming language and [SDL2](https://www.libsdl.org/ "SDL2 library") library.
+Falcon Fury is a 2D Shoot 'Em Up game made using the C++ programming language and [SDL2](https://www.libsdl.org/ "SDL2 library") library.
 
 ## Getting Started
 
