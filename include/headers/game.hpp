@@ -39,6 +39,7 @@ class Game{
 
         int fire;
         int playerLifeScore = 1;
+        int gameHighscore = 0;
         bool isLifeGenerated = false;
 
         GameState gameState = GameState::PLAY;

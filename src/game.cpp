@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
+#include "highScoreFile.hpp"
 using namespace std;
 
 Game::Game(const char* title, int x, int y, int w, int h, Uint32 flags)
@@ -72,6 +73,10 @@ void Game::gameLoop(){
 	SDL_Texture *playerTexture1 = loadTexture((char*)"res/images/player_lvl2.png");
 	SDL_Texture *playerTexture2 = loadTexture((char*)"res/images/player_lvl3.png");
 
+	// init highscore
+	HighScoreFile hf;
+	gameHighscore = hf.getHighScore();
+
 	// init player
 	player.x = 500;
     player.y = 640;
@@ -108,6 +113,11 @@ void Game::gameLoop(){
 			player.dx = 0;
 			player.dy = 0;
 			player.texture = NULL;
+			if(score > gameHighscore){
+				gameHighscore = score;
+				hf.setHighScore(score);
+			} 
+			
 			score = 0;
 		}else if(gameState == GameState::PLAYAGAIN){
 			player.x = 500;
@@ -551,7 +561,7 @@ void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font)
 		SDL_Surface* textSurface = TTF_RenderText_Solid( font, displayText.data(), textColor );
 		if(textSurface == NULL) cout << "Unable to load text surface" << endl;
 		SDL_Texture* messageTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-		if(textSurface == NULL) cout << "Unable load texture" << endl;
+		if(messageTexture == NULL) cout << "Unable load texture" << endl;
 
 		SDL_Rect scoreRect; //create a rect
 		scoreRect.x = 100;  //controls the rect's x coordinate 
@@ -564,6 +574,28 @@ void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font)
 
 		SDL_FreeSurface(textSurface);
 		SDL_DestroyTexture(messageTexture);
+
+		// highscore
+		std::string ss = std::to_string(gameHighscore);
+		std::string desc2 = "HighScore: ";
+		std::string displayText2 = desc2 + ss;
+
+		SDL_Surface* textSurface2 = TTF_RenderText_Solid( font, displayText2.data(), textColor );
+		if(textSurface == NULL) cout << "Unable to load text surface" << endl;
+		SDL_Texture* messageTexture2 = SDL_CreateTextureFromSurface(renderer, textSurface2);
+		if(messageTexture2 == NULL) cout << "Unable load texture" << endl;
+
+		SDL_Rect scoreRect2; //create a rect
+		scoreRect2.x = 1080;  //controls the rect's x coordinate 
+		scoreRect2.y = 100; // controls the rect's y coordinte
+		scoreRect2.w = 100; // controls the width of the rect
+		scoreRect2.h = 100; // controls the height of the rect
+
+		SDL_QueryTexture(messageTexture2, NULL, NULL, &scoreRect2.w, &scoreRect2.h);
+		SDL_RenderCopy(renderer, messageTexture2, NULL, &scoreRect2);
+
+		SDL_FreeSurface(textSurface2);
+		SDL_DestroyTexture(messageTexture2);
 	}
 
 	// Game Over
