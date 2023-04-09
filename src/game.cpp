@@ -179,8 +179,8 @@ void Game::gameLoop(){
 			player.x += PLAYER_SPEED;
 		}
 		
-		if (gameState != GameState::GAMEOVER || gameState != GameState::START) playerHitEnemy(player, fighterHead ,sound); // check for player collission
-		if (gameState != GameState::GAMEOVER || gameState != GameState::START) playerHitLife(player, playerLife ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER && gameState != GameState::START) playerHitEnemy(player, fighterHead ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER && gameState != GameState::START) playerHitLife(player, playerLife ,sound); // check for player collission
 
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
