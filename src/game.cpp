@@ -52,12 +52,12 @@ void Game::gameLoop(){
 	int backgroundY = 0;
 	int score = 0;
 
-    player.x = 500;
+	player.x = 500;
     player.y = 640;
     player.dx = 0;
     player.dy = 0;
 	player.side = SIDE_PLAYER;
-    player.texture = loadTexture((char*)"res/images/player.png");
+	player.texture = loadTexture((char*)"res/images/player.png");
 	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
 	// Cache textures
@@ -93,13 +93,19 @@ void Game::gameLoop(){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
 
-        if(gameState == GameState::GAMEOVER)
+        // Handles game over state
+		if(gameState == GameState::GAMEOVER)
 		{
-			player.x = 0;
-			player.y = 0;
 			player.dx = 0;
 			player.dy = 0;
 			player.texture = NULL;
+			score = 0;
+		}else if(gameState == GameState::PLAYAGAIN){
+			player.x = 500;
+    		player.y = 640;
+			player.texture = loadTexture((char*)"res/images/player.png");
+			SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
+			gameState = GameState::PLAY;
 		}
 
 		player.x += player.dx;
@@ -128,7 +134,7 @@ void Game::gameLoop(){
 			player.x += PLAYER_SPEED;
 		}
 		
-		playerHitEnemy(player, fighterHead ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER) playerHitEnemy(player, fighterHead ,sound); // check for player collission
 
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
@@ -377,8 +383,9 @@ void Game::doKeyDown(SDL_KeyboardEvent *event)
 {
 	if (event->repeat == 0)
 	{
+		if(event->keysym.scancode == SDL_SCANCODE_RETURN) gameState = GameState::PLAYAGAIN;
         
-        if (event->keysym.scancode == SDL_SCANCODE_SPACE)
+        if (event->keysym.scancode == SDL_SCANCODE_SPACE && gameState == GameState::PLAY)
         {
 	        fire = 1;
         }
@@ -469,7 +476,7 @@ void Game::playerHitEnemy(Entity player, Entity fighterHead, Sound sound) // che
 		{
 			player.health = 0;
 			e->health = 0;
-			sound.playSound(sound.SND_PLAYER_DIE,CH_PLAYER);
+			sound.playSound(sound.SND_PLAYER_DIE,CH_ANY);
 			gameState = GameState::GAMEOVER;
 		}
 	}
@@ -516,5 +523,21 @@ void Game::drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font)
 
 		SDL_FreeSurface(textSurface2);
 		SDL_DestroyTexture(messageTexture2);
+
+		// Play Again Message
+		SDL_Surface* textSurface3 = TTF_RenderText_Solid( font, (char*)"Press Enter to Play Again", textColor );
+		SDL_Texture* messageTexture3 = SDL_CreateTextureFromSurface(renderer, textSurface3);
+
+		SDL_Rect paRect; //create a rect
+		paRect.x = 1280/2 - 100;
+		paRect.y = 400 -50;
+		paRect.w = 100; 
+		paRect.h = 100; 
+		
+		SDL_QueryTexture(messageTexture3, NULL, NULL, &paRect.w, &paRect.h);
+		SDL_RenderCopy(renderer, messageTexture3, NULL, &paRect);
+
+		SDL_FreeSurface(textSurface3);
+		SDL_DestroyTexture(messageTexture3);
 	}
 }

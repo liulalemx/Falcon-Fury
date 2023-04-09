@@ -8,7 +8,7 @@
 #include <SDL_ttf.h>
 #include <string>
 
-enum class GameState {PLAY, EXIT, GAMEOVER};
+enum class GameState {PLAY, EXIT, GAMEOVER, PLAYAGAIN};
 
 class Game{
     public:
