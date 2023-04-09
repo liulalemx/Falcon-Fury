@@ -29,6 +29,7 @@ class Game{
         int bulletHitFighter(Entity *b, Entity fighterHead, Sound sound); // checks if a bullet has hit an enemy figher using collision function
         void drawHud(std::string textureText, SDL_Color textColor, TTF_Font *font); // draws the score and high score
         void playerHitEnemy(Entity player, Entity fighterHead, Sound sound);
+        void playerHitLife(Entity player, Entity life, Sound sound);
 
         SDL_Window* window;
         SDL_Renderer* renderer;
@@ -37,6 +38,8 @@ class Game{
         int up,down,left,right;
 
         int fire;
+        int playerLifeScore = 1;
+        bool isLifeGenerated = false;
 
         GameState gameState = GameState::PLAY;
 };

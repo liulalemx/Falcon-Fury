@@ -48,29 +48,38 @@ void Game::gameLoop(){
     Entity *fighterTail = new Entity();
 	fighterTail = &fighterHead;
 
+	Entity playerLife;
+
 	int enemySpawnTimer = 0;
+	int lifeSpawnTimer = 0;
 	int backgroundY = 0;
 	int score = 0;
-
-	player.x = 500;
-    player.y = 640;
-    player.dx = 0;
-    player.dy = 0;
-	player.side = SIDE_PLAYER;
-	player.texture = loadTexture((char*)"res/images/player.png");
-	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
 	// Cache textures
     SDL_Texture *backgroundTextureTop = loadTexture((char*)"res/images/mapTop.png");
     SDL_Texture *backgroundTextureMid = loadTexture((char*)"res/images/mapMid.png");
     SDL_Texture *backgroundTextureBot = loadTexture((char*)"res/images/mapBot.png");
     SDL_Texture *bulletTexture = loadTexture((char*)"res/images/bullet1.png");
+    SDL_Texture *bulletTexture2 = loadTexture((char*)"res/images/bullet2.png");
     SDL_Texture *enemyTexture1 = loadTexture((char*)"res/images/enemyShip.png");
     SDL_Texture *enemyTexture2 = loadTexture((char*)"res/images/enemyShip_lvl2.png");
     SDL_Texture *enemyTexture3 = loadTexture((char*)"res/images/enemyShip_lvl3.png");
     SDL_Texture *enemyTexture4 = loadTexture((char*)"res/images/enemyShip_lvl4.png");
     SDL_Texture *enemyTexture5 = loadTexture((char*)"res/images/enemyShip_lvl5.png");
     SDL_Texture *enemyTexture6 = loadTexture((char*)"res/images/enemyShip_lvl6.png");
+	SDL_Texture *playerLifeTexture = loadTexture((char*)"res/images/life.png");
+	SDL_Texture *playerTexture = loadTexture((char*)"res/images/player.png");
+	SDL_Texture *playerTexture1 = loadTexture((char*)"res/images/player_lvl2.png");
+	SDL_Texture *playerTexture2 = loadTexture((char*)"res/images/player_lvl3.png");
+
+	// init player
+	player.x = 500;
+    player.y = 640;
+    player.dx = 0;
+    player.dy = 0;
+	player.side = SIDE_PLAYER;
+	player.texture = playerTexture;
+	SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 
 	// init sound
 	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
@@ -92,8 +101,8 @@ void Game::gameLoop(){
     while(gameState != GameState::EXIT){
         prepareScene(); // sets up rendering
         handleEvents(); // collects and precesses user input
-
-        // Handles game over state
+		
+        // Handles game over and play again states
 		if(gameState == GameState::GAMEOVER)
 		{
 			player.dx = 0;
@@ -106,6 +115,21 @@ void Game::gameLoop(){
 			player.texture = loadTexture((char*)"res/images/player.png");
 			SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
 			gameState = GameState::PLAY;
+		}
+
+		// Update player texture to sprite
+		if(gameState != GameState::GAMEOVER)
+		{	
+			if(player.texture != playerTexture && playerLifeScore == 1){
+				player.texture = playerTexture;
+				SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
+			}else if (playerLifeScore == 2){
+				player.texture = playerTexture1;
+				SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
+			}else if(playerLifeScore == 3){
+				player.texture = playerTexture2;
+				SDL_QueryTexture(player.texture, NULL, NULL, &player.w, &player.h);
+			}
 		}
 
 		player.x += player.dx;
@@ -135,6 +159,7 @@ void Game::gameLoop(){
 		}
 		
 		if (gameState != GameState::GAMEOVER) playerHitEnemy(player, fighterHead ,sound); // check for player collission
+		if (gameState != GameState::GAMEOVER) playerHitLife(player, playerLife ,sound); // check for player collission
 
 		// allow fire bullet every 8 frames
         if(fire && player.reload == 0){
@@ -154,7 +179,12 @@ void Game::gameLoop(){
             bullet->dy = -PLAYER_BULLET_SPEED;
             bullet->health = 1;
 			bullet->side = SIDE_PLAYER;
-			bullet->texture = bulletTexture;
+			if(playerLifeScore <2){
+				bullet->texture = bulletTexture;
+			}else{
+				bullet->texture = bulletTexture2;
+			}
+			
 			SDL_QueryTexture(bullet->texture, NULL, NULL, &bullet->w, &bullet->h); 
         }
 
@@ -185,7 +215,17 @@ void Game::gameLoop(){
 		dest.x = 0;
 		SDL_QueryTexture(backgroundTextureMid, NULL, NULL, &dest.w, &dest.h);
 		SDL_RenderCopy(renderer, backgroundTextureMid, NULL, &dest);
-	
+
+		// generates Life point every 10 - 30 seconds
+		if(--lifeSpawnTimer <= 0 && !isLifeGenerated && gameState != GameState::GAMEOVER)
+		{
+			playerLife.x = rand() % 1270;
+			playerLife.y = rand() % 710;
+			playerLife.side = SIDE_ALIEN;
+			isLifeGenerated = true;
+			lifeSpawnTimer = 600 + (rand() % 1200);
+		}
+
 		// generate enemy ships every 0.5 - 1.5 seconds
 		if (--enemySpawnTimer <= 0)
 		{
@@ -308,8 +348,14 @@ void Game::gameLoop(){
 
 			prevv = e;
 		}
-			
-        blit(player.texture, player.x, player.y); // display image
+
+		// render player life
+		playerLife.texture = playerLifeTexture;
+		SDL_QueryTexture(playerLife.texture, NULL, NULL, &playerLife.w, &playerLife.h); 
+		if(isLifeGenerated) blit(playerLife.texture, playerLife.x, playerLife.y);
+
+		// display player over everything	
+        blit(player.texture, player.x, player.y); 
 
 		// draws HUD
 		std::string s = std::to_string(score);
@@ -474,12 +520,25 @@ void Game::playerHitEnemy(Entity player, Entity fighterHead, Sound sound) // che
 	{
 		if (e->side != player.side && collision(player.x, player.y, player.w, player.h, e->x, e->y, e->w, e->h))
 		{
-			player.health = 0;
+			playerLifeScore--;
 			e->health = 0;
-			sound.playSound(sound.SND_PLAYER_DIE,CH_ANY);
-			gameState = GameState::GAMEOVER;
+			if(playerLifeScore <= 0){
+				sound.playSound(sound.SND_PLAYER_DIE,CH_ANY);
+				gameState = GameState::GAMEOVER;
+			}
 		}
 	}
+
+}
+
+void Game::playerHitLife(Entity player, Entity life, Sound sound) // checks if the player has collided with an enemy
+{
+		if (isLifeGenerated && life.side != player.side && collision(player.x, player.y, player.w, player.h, life.x, life.y, life.w, life.h))
+		{
+			if(playerLifeScore < 3)playerLifeScore++;
+			isLifeGenerated = false;
+			sound.playSound(sound.SND_POWERUP,CH_ANY);
+		}
 
 }
 

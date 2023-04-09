@@ -23,6 +23,7 @@ void Sound::loadSounds(){
     SND_PLAYER_DIE = Mix_LoadWAV("res/sounds/playerDeath.wav");
     SND_ALIEN_DIE = Mix_LoadWAV("res/sounds/explosion.wav");
     SND_ALIEN_HIT = Mix_LoadWAV("res/sounds/enemyHit.wav");
+    SND_POWERUP = Mix_LoadWAV("res/sounds/powerup.wav");
 }
 
 void Sound::playMusic(int loop)

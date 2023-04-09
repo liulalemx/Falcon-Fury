@@ -18,4 +18,5 @@ class Sound{
         Mix_Chunk *SND_PLAYER_DIE = NULL;
         Mix_Chunk *SND_ALIEN_DIE = NULL;
         Mix_Chunk *SND_ALIEN_HIT = NULL;
+        Mix_Chunk *SND_POWERUP = NULL;
 };
